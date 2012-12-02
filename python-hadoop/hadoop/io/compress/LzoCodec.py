@@ -16,28 +16,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from hadoop.util import ReflectionUtils
+import lzo
 
-from BZip2Codec import *
-from ZlibCodec import *
-from GzipCodec import *
-from LzoCodec import *
+from hadoop.io.InputStream import DataInputBuffer
 
-class CodecPool(object):
-    def __new__(cls, *p, **k):
-        if not '_shared_instance' in cls.__dict__:
-            cls._shared_instance = object.__new__(cls)
-        return cls._shared_instance
+class LzoCodec:
+    hadoop_module_name = 'com.hadoop.compression.lzo'
+    hadoop_class_name = 'LzoCodec'
+        
+    def compress(self, data):
+        return lzo.compress(data, 1)
 
-    def getDecompressor(self, class_path=None):
-        if not class_path:
-            return DefaultCodec()
-        codec_class = ReflectionUtils.hadoopClassFromName(class_path)
-        return codec_class()
+    def decompress(self, data):
+        return lzo.decompress(data)
 
-    def getCompressor(self, class_path=None):
-        if not class_path:
-            return DefaultCodec()
-        codec_class = ReflectionUtils.hadoopClassFromName(class_path)
-        return codec_class()
+    def decompressInputStream(self, data):
+        return DataInputBuffer(lzo.decompress(data))
 

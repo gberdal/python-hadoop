@@ -27,7 +27,7 @@ class GzipCodec:
         f = gzip.GzipFile(fileobj = ioObj, mode='wb')
         f.write(data)
         f.close()
-        return ioObj.getValue()
+        return ioObj.getvalue()
 
     def decompress(self, data):
         ioObj = StringIO.StringIO(data)

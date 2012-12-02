@@ -95,31 +95,33 @@ class Metadata(Writable):
             value = Text.readString(data_input)
             self._meta[key] = value
 
-def createWriter(path, key_class, value_class, metadata=None, compression_type=CompressionType.NONE):
+def createWriter(path, key_class, value_class, metadata=None, compression_type=CompressionType.NONE, compression_codec=None):
     kwargs = {}
 
     if compression_type == CompressionType.NONE:
         pass
     elif compression_type == CompressionType.RECORD:
         kwargs['compress'] = True
+        kwargs['compression_codec'] = compression_codec
     elif compression_type == CompressionType.BLOCK:
         kwargs['compress'] = True
         kwargs['block_compress'] = True
+        kwargs['compression_codec'] = compression_codec
     else:
         raise NotImplementedError("Compression Type Not Supported")
 
     return Writer(path, key_class, value_class, metadata, **kwargs)
 
-def createRecordWriter(path, key_class, value_class, metadata=None):
-    return Writer(path, key_class, value_class, metadata, compress=True)
+def createRecordWriter(path, key_class, value_class, metadata=None, compression_codec=None):
+    return Writer(path, key_class, value_class, metadata, compress=True, compression_codec=compression_codec)
 
-def createBlockWriter(path, key_class, value_class, metadata=None):
-    return Writer(path, key_class, value_class, metadata, compress=True, block_compress=True)
+def createBlockWriter(path, key_class, value_class, metadata=None, compression_codec=None):
+    return Writer(path, key_class, value_class, metadata, compress=True, block_compress=True, compression_codec=compression_codec)
 
 class Writer(object):
     COMPRESSION_BLOCK_SIZE = 1000000
 
-    def __init__(self, path, key_class, value_class, metadata, compress=False, block_compress=False):
+    def __init__(self, path, key_class, value_class, metadata, compress=False, block_compress=False, compression_codec=None):
         if os.path.exists(path):
             raise IOError("File %s already exists." % path)
 
@@ -133,7 +135,10 @@ class Writer(object):
         self._metadata = metadata
 
         if self._compress or self._block_compress:
-            self._codec = CodecPool().getCompressor()
+            if compression_codec:
+                self._codec = compression_codec
+            else:
+                self._codec = CodecPool().getCompressor()
         else:
             self._codec = None
 
@@ -261,7 +266,7 @@ class Writer(object):
         self._stream.writeBoolean(self._block_compress)
 
         if self._codec:
-            Text.writeString(self._stream, 'org.apache.hadoop.io.compress.DefaultCodec')
+            Text.writeString(self._stream, hadoopClassName(self._codec.__class__))
 
         self._metadata.write(self._stream)
         self._stream.write(self._sync)

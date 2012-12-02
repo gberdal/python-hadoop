@@ -21,6 +21,9 @@ import zlib
 from hadoop.io.InputStream import DataInputBuffer
 
 class ZlibCodec:
+    hadoop_module_name = 'org.apache.hadoop.io.compress'
+    hadoop_class_name = 'DefaultCodec'
+    
     def compress(self, data):
         return zlib.compress(data)
 
