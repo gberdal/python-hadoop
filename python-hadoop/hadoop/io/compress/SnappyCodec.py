@@ -16,18 +16,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import OutputStream
-import InputStream
+import snappy
 
-import SequenceFile
-import ArrayFile
-import MapFile
-import SetFile
+from hadoop.io.InputStream import DataInputBuffer
 
-from Writable import *
-from IntWritable import *
-from BytesWritable import *
-from Text import *
-import WritableUtils
 
-import compress
+class SnappyCodec:
+
+    hadoop_module_name = 'org.apache.hadoop.io.compress'
+    hadoop_class_name = 'SnappyCodec'
+
+    def compress(self, data):
+        return snappy.compress(data)
+
+    def decompress(self, data):
+        return snappy.decompress(data)
+
+    def decompressInputStream(self, data):
+        return DataInputBuffer(snappy.decompress(data))
+
