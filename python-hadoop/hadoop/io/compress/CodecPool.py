@@ -21,7 +21,7 @@ from hadoop.util import ReflectionUtils
 from BZip2Codec import *
 from ZlibCodec import *
 from GzipCodec import *
-from LzoCodec import *
+# from LzoCodec import *
 
 class CodecPool(object):
     def __new__(cls, *p, **k):
